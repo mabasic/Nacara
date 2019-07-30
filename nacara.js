@@ -1,4 +1,4 @@
-{
+module.exports = {
     "githubURL": "https://github.com/MangelMaxime/Nacara",
     "url": "https://mangelmaxime.github.io",
     "baseUrl": "/Nacara/",
@@ -57,4 +57,4 @@
             "./paket-files/Microsoft/vscode/extensions/json/syntaxes/JSON.tmLanguage.json"
         ]
     }
-}
+};

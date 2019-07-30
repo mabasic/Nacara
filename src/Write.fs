@@ -28,8 +28,10 @@ let sassFile (model : Model, filePath : string) =
 let standard (model : Model, pageContext : PageContext) =
     promise {
         let fileContent =
-            Render.DocPage.toHtml model pageContext
-            |> Helpers.parseReactStatic
+            // Render.DocPage.toHtml model pageContext
+            // |> Helpers.parseReactStatic
+
+            ""
 
         let outputPath =
             pageContext.Path
@@ -72,9 +74,11 @@ let changelog (model : Model, changelog : Changelog.Types.Changelog, path : stri
             //     [ section [ Class "changelog" ]
             //         [ ul [ Class "changelog-list" ]
             //             versionsList ] ]
-            changelog
-            |> Render.Changelog.toHtml model
-            |> Helpers.parseReactStatic
+            // changelog
+            // |> Render.Changelog.toHtml model
+            // |> Helpers.parseReactStatic
+
+            ""
 
         do! File.write outputPath html
         return path

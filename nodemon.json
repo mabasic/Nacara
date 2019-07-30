@@ -1,7 +1,7 @@
 {
     "watch": [
         "dist/",
-        "nacara.json"
+        "nacara.js"
     ],
     "env": {
         "NODE_ENV": "development"

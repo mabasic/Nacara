@@ -16,9 +16,10 @@
     <Compile Include="Types.fs" />
     <Compile Include="Helpers.fs" />
     <Compile Include="Changelog.fs" />
-    <Compile Include="Render.Common.fs" />
-    <Compile Include="Render.DocPage.fs" />
-    <Compile Include="Render.Changelog.fs" />
+    <Compile Include="Templates/Centered/Prelude.fs" />
+    <Compile Include="Templates/Centered/Changelog.fs" />
+    <Compile Include="Templates/Centered/DocPage.fs" />
+    <Compile Include="Templates/Templates.fs" />
     <Compile Include="Write.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>

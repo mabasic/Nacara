@@ -319,12 +319,12 @@ let tryBuildPageContext (path : string) =
 
 let start () =
     promise {
-        let configPath = Node.Exports.path.join(cwd, "nacara.json")
+        let configPath = Node.Exports.path.join(cwd, "nacara.js")
         let! hasDocsConfig = File.exist(configPath)
 
         if hasDocsConfig then
-            let! fileContent = File.read configPath
-            match Decode.fromString Config.Decoder fileContent  with
+            let importedModule : obj = require configPath
+            match Decode.fromValue "$" Config.Decoder importedModule  with
             | Ok config ->
                 let! files = Directory.getFiles true config.Source
 
