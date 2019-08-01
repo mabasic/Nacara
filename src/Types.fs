@@ -111,9 +111,37 @@ open Fable.Core.JsInterop
 
 type MenuItem =
     | MenuItem of string
-    | MenuList of JS.Map<string, MenuItem list>
+    | MenuList of string * MenuItem [] //JS.Map<string, MenuItem list>
 
     static member Decoder =
+        // Decode.oneOf [
+        //     Decode.string
+        //     |> Decode.map MenuItem
+
+        //     (fun path value ->
+        //         if not (Helpers.isObject value) || Helpers.isArray value then
+        //             (path, Decode.BadPrimitive ("an object", value))
+        //             |> Error
+        //         else
+        //             let keys = Helpers.objectKeys value
+
+        //             if Seq.length keys < 1 then
+        //                 (path, Decode.BadPrimitive ("an object with 1 property", value))
+        //                 |> Error
+        //             else
+        //                 value
+        //                 |> Helpers.objectKeys
+        //                 |> Seq.map (fun key -> (key, value?(key) |> Decode.unwrap path (Decode.list MenuItem.Decoder)))
+        //                 |> Seq.fold (fun (state : JS.Map<string, MenuItem list>) (key, value) ->
+        //                     state.set(key, value)
+        //                 ) (JS.Map.Create<string, MenuItem list>())
+        //                 |> Ok )
+        //     |> Decode.map MenuList
+        // ]
+
+        let test (state : (string * MenuItem [])) (key, value) =
+            List.append state [| (key, value) |]
+
         Decode.oneOf [
             Decode.string
             |> Decode.map MenuItem
@@ -132,14 +160,50 @@ type MenuItem =
                         value
                         |> Helpers.objectKeys
                         |> Seq.map (fun key -> (key, value?(key) |> Decode.unwrap path (Decode.list MenuItem.Decoder)))
-                        |> Seq.fold (fun (state : JS.Map<string, MenuItem list>) (key, value) ->
+                        |> Seq.fold (fun (state : (string * MenuItem [])) (key, value) ->
+
+                            List.append state [| (key, value) |]
+
+
                             state.set(key, value)
+
                         ) (JS.Map.Create<string, MenuItem list>())
                         |> Ok )
             |> Decode.map MenuList
+
         ]
 
-type MenuConfig = JS.Map<string, MenuItem list>
+let test =
+    [
+        MenuList (
+            "Menu 1", [|
+                MenuItem "Sub menu 1"
+                MenuList (
+                    "Menu 1", [|
+                        MenuItem "Sub menu 1"
+                        MenuItem "Sub menu 2"
+                    |]
+                )
+            |]
+        )
+        MenuList (
+            "Menu 1", [|
+                MenuItem "Sub menu 1"
+                MenuItem "Sub menu 2"
+            |]
+        )
+    ]
+
+let menuList : Decoder<MenuList> =
+    fun path value ->
+        if not (Helpers.isObject value) || Helpers.isArray value then
+            (path, Decode.BadPrimitive ("an object", value))
+            |> Error
+        else
+            let keys = Helpers.objectKeys value
+
+
+type MenuConfig = (string * MenuItem []) list
 
 let menuConfigDecoder : Decode.Decoder<JS.Map<string, MenuItem list>> =
     fun path value ->
