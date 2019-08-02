@@ -5,8 +5,8 @@ open Fable.Import
 open Fable.Core
 open Fable.Core.JsInterop
 open Fulma
-open Fable.Helpers.React
-open Fable.Helpers.React.Props
+open Fable.React
+open Fable.React.Props
 open Thoth.Json
 open Types
 open System
@@ -86,16 +86,18 @@ let processPostJavaScriptRender (pageContext : PageContext) =
     }
 
 let processCodeHighlights (lightnerConfig : Map<string, CodeLightner.Config>) (pageContext : PageContext) =
-    let codeBlockRegex = JS.RegExp.Create("""<pre\b[^>]*><code class="language-([^"]*)">(.*?)<\/code><\/pre>""", "gms")
+    let codeBlockRegex =
+        // Regex("""<pre\b[^>]*><code class="language-([^"]*)">(.*?)<\/code><\/pre>""", RegexOptions.Multiline ||| RegexOptions.Singleline)
+        JS.RegExp.Create("""<pre\b[^>]*><code class="language-([^"]*)">(.*?)<\/code><\/pre>""", "gms")
 
     let rec apply (text : string) =
         promise {
-            let m = codeBlockRegex.exec pageContext.Content
-            if isNotNull m then
-                let wholeText = m.[0]
-                let lang = m.[1]
+            let m = codeBlockRegex.Match pageContext.Content
+            if m.Success then
+                let wholeText = m.Groups.[0].Value
+                let lang = m.Groups.[1].Value
                 let codeText =
-                    m.[2]
+                    m.Groups.[2].Value
                     |> Helpers.unEscapeHTML
                     // Escape single `$` caracter otherwise vscode-textmaste inject
                     // source code at `$` place.
@@ -119,14 +121,14 @@ let processCodeHighlights (lightnerConfig : Map<string, CodeLightner.Config>) (p
         return { pageContext with Content = processedContent }
     }
 
-let cwd = Node.Globals.``process``.cwd()
+let cwd = Node.Api.``process``.cwd()
 
 Log.infoFn "Current directory:\n%s" cwd
 
 open Chokidar
 
 let (|MarkdownFile|JavaScriptFile|SassFile|UnsupportedFile|) (path : string) =
-    let ext = Node.Exports.path.extname(path)
+    let ext = Node.Api.path.extname(path)
 
     match ext.ToLower() with
     | ".md" -> MarkdownFile
@@ -164,9 +166,9 @@ module Process =
                       TableOfContent = ""
                       Content = markdown }
                     |> processTableOfContent
-                    |> Promise.bind (processCodeHighlights lightnerConfig)
+                    // |> Promise.bind (processCodeHighlights lightnerConfig)
                     |> Promise.bind processPostJavaScriptRender
-
+                Log.info "coucou from here"
                 return Ok pageContext
         }
 
@@ -184,7 +186,7 @@ let init (config : Config, docFiles : Map<string, PageContext>, lightnerCache : 
     // Start the LiveServer instance
     let liveServerOption =
         jsOptions<LiveServer.Options>(fun o ->
-            o.root <- Node.Exports.path.join(cwd, config.Output)
+            o.root <- Node.Api.path.join(cwd, config.Output)
             o.``open`` <- false
             o.logLevel <- 0
         )
@@ -198,7 +200,7 @@ let init (config : Config, docFiles : Map<string, PageContext>, lightnerCache : 
 
     // We need to register in the event in order have access to the server info
     // Otherwise, the server isn't ready yet
-    server.on("listening", (fun _ ->
+    server.on("listening", (fun _ _ ->
         let address = server.address()
         Log.success "Server started at: http://%s:%i" address?address address?port
     ))
@@ -220,11 +222,11 @@ let update (msg : Msg) (model : Model) =
             match model.Config.Changelog with
             | Some changelogPath ->
                 if filePath = changelogPath then
-                    Cmd.ofPromise Process.changelog filePath ProcessChangelogResult ProcessFailed
+                    Cmd.OfPromise.either Process.changelog filePath ProcessChangelogResult ProcessFailed
                 else
-                    Cmd.ofPromise Process.markdownFile (filePath, model.LightnerCache) ProcessMarkdownResult ProcessFailed
+                    Cmd.OfPromise.either Process.markdownFile (filePath, model.LightnerCache) ProcessMarkdownResult ProcessFailed
             | None ->
-                Cmd.ofPromise Process.markdownFile (filePath, model.LightnerCache) ProcessMarkdownResult ProcessFailed
+                Cmd.OfPromise.either Process.markdownFile (filePath, model.LightnerCache) ProcessMarkdownResult ProcessFailed
 
         model, cmd
 
@@ -233,7 +235,7 @@ let update (msg : Msg) (model : Model) =
         model, Cmd.none
 
     | ProcessSass filePath ->
-        model, Cmd.ofPromise Write.sassFile (model, filePath) WriteFileSuccess WriteFileFailed
+        model, Cmd.OfPromise.either Write.sassFile (model, filePath) WriteFileSuccess WriteFileFailed
 
     | ProcessMarkdownResult result ->
         match result with
@@ -245,7 +247,7 @@ let update (msg : Msg) (model : Model) =
             let pageId = getFileId model.Config.Source pageContext
             let newDocFiles = Map.add pageId pageContext model.DocFiles
             let newModel = { model with DocFiles = newDocFiles }
-            newModel, Cmd.ofPromise Write.standard (newModel, pageContext) WriteFileSuccess WriteFileFailed
+            newModel, Cmd.OfPromise.either Write.standard (newModel, pageContext) WriteFileSuccess WriteFileFailed
 
     | ProcessChangelogResult (path, result) ->
         match result with
@@ -254,7 +256,7 @@ let update (msg : Msg) (model : Model) =
             model, Cmd.none
 
         | Ok changelog ->
-            model, Cmd.ofPromise Write.changelog (model,changelog, path) WriteFileSuccess WriteFileFailed
+            model, Cmd.OfPromise.either Write.changelog (model,changelog, path) WriteFileSuccess WriteFileFailed
 
     | WriteFileSuccess path ->
         Log.log "Write: %s" path
@@ -319,7 +321,7 @@ let tryBuildPageContext (path : string) =
 
 let start () =
     promise {
-        let configPath = Node.Exports.path.join(cwd, "nacara.js")
+        let configPath = Node.Api.path.join(cwd, "nacara.js")
         let! hasDocsConfig = File.exist(configPath)
 
         if hasDocsConfig then
@@ -414,6 +416,6 @@ let start () =
                 Log.errorFn "%s" msg
         else
             Log.error "No file `nacara.json` found."
-            Node.Globals.``process``.exit(1)
+            Node.Api.``process``.exit(1)
     }
     |> Promise.start

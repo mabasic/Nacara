@@ -2,7 +2,6 @@ module rec StringJS
 
 open System
 open Fable.Core
-open Fable.Import.JS
 
 let [<Import("default","string")>] S: TypeLiteral_01 = jsNative
 

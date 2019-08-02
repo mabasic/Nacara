@@ -2,14 +2,14 @@ namespace Templates.Centered
 
 module DocPage =
 
-    open Fable.Helpers.React
-    open Fable.Helpers.React.Props
+    open Fable.React
+    open Fable.React.Props
     open Fulma
     open Fable.FontAwesome
     open Types
-    open Fable.Import
+    open Fable.Core
 
-    let private renderPage (menu : React.ReactElement option) (tocContent : string) (pageContent : string) =
+    let private renderPage (menu : ReactElement option) (tocContent : string) (pageContent : string) =
         Columns.columns [ Columns.IsGapless ]
             [ Column.column [ Column.Width (Screen.Desktop, Column.Is2)
                               Column.Width (Screen.Touch, Column.Is3)
@@ -34,84 +34,84 @@ module DocPage =
                 [ div [ DangerouslySetInnerHTML { __html =  tocContent } ]
                     [ ] ] ]
 
-    let private generateMenu (model : Model) (pageContext : PageContext) =
-        match model.Config.MenuConfig with
-        | Some menuConfig ->
-            let keys =
-                menuConfig.keys() :?> JS.Iterable<string>
-                |> JS.Array.from
-                |> unbox<string array>
+    // let private generateMenu (model : Model) (pageContext : PageContext) =
+    //     match model.Config.MenuConfig with
+    //     | Some menuConfig ->
+    //         let keys =
+    //             menuConfig.keys() :?> JS.Iterable<string>
+    //             |> JS.Array.from
+    //             |> unbox<string array>
 
-            keys
-            |> Array.map (fun key ->
-                let items =
-                    menuConfig.get(key)
-                    |> List.map (function
-                        | MenuItem pageId ->
-                            match Map.tryFind pageId model.DocFiles with
-                            | Some pageInfo ->
-                                Menu.Item.li [ Menu.Item.Props [ Data("menu-id", pageId) ]
-                                               generateUrl model.Config pageInfo
-                                               |> Menu.Item.Href ]
-                                    [ str pageInfo.Attributes.Title ]
-                            | None ->
-                                Log.error "Unable to find the file: %s" pageId
-                                nothing
-                        | MenuList menuListInfo ->
-                            let keys =
-                                menuListInfo.keys() :?> JS.Iterable<string>
-                                |> JS.Array.from
-                                |> unbox<string array>
+    //         keys
+    //         |> Array.map (fun key ->
+    //             let items =
+    //                 menuConfig.get(key)
+    //                 |> List.map (function
+    //                     | MenuItem pageId ->
+    //                         match Map.tryFind pageId model.DocFiles with
+    //                         | Some pageInfo ->
+    //                             Menu.Item.li [ Menu.Item.Props [ Data("menu-id", pageId) ]
+    //                                            generateUrl model.Config pageInfo
+    //                                            |> Menu.Item.Href ]
+    //                                 [ str pageInfo.Attributes.Title ]
+    //                         | None ->
+    //                             Log.error "Unable to find the file: %s" pageId
+    //                             nothing
+    //                     | MenuList menuListInfo ->
+    //                         let keys =
+    //                             menuListInfo.keys() :?> JS.Iterable<string>
+    //                             |> JS.Array.from
+    //                             |> unbox<string array>
 
-                            keys
-                            |> Array.map (fun key ->
-                                let subMenu =
-                                    menuListInfo.get(key)
-                                    |> List.map (function
-                                        | MenuItem pageId ->
-                                            match Map.tryFind pageId model.DocFiles with
-                                            | Some pageInfo ->
-                                                Menu.Item.li [ Menu.Item.Props [ Data("menu-id", pageId) ]
-                                                               generateUrl model.Config pageInfo
-                                                               |> Menu.Item.Href ]
-                                                    [ str pageInfo.Attributes.Title ]
-                                            | None ->
-                                                Log.error "Unable to find the file: %s" pageId
-                                                nothing
-                                        | MenuList x ->
-                                            Log.warn "Nacara only support only 2 level deep menus. The following menu is too deep:\n%A" x
-                                            nothing
-                                    )
-                                    |> ul [ ]
+    //                         keys
+    //                         |> Array.map (fun key ->
+    //                             let subMenu =
+    //                                 menuListInfo.get(key)
+    //                                 |> List.map (function
+    //                                     | MenuItem pageId ->
+    //                                         match Map.tryFind pageId model.DocFiles with
+    //                                         | Some pageInfo ->
+    //                                             Menu.Item.li [ Menu.Item.Props [ Data("menu-id", pageId) ]
+    //                                                            generateUrl model.Config pageInfo
+    //                                                            |> Menu.Item.Href ]
+    //                                                 [ str pageInfo.Attributes.Title ]
+    //                                         | None ->
+    //                                             Log.error "Unable to find the file: %s" pageId
+    //                                             nothing
+    //                                     | MenuList x ->
+    //                                         Log.warn "Nacara only support only 2 level deep menus. The following menu is too deep:\n%A" x
+    //                                         nothing
+    //                                 )
+    //                                 |> ul [ ]
 
-                                li [ ]
-                                    [ a [ Class "menu-group" ]
-                                        [ span [ ]
-                                            [ str key ]
-                                          Icon.icon [ ]
-                                            [ Fa.i [ Fa.Solid.AngleRight
-                                                     Fa.Size Fa.FaLarge ]
-                                                [ ] ] ]
-                                      subMenu ]
+    //                             li [ ]
+    //                                 [ a [ Class "menu-group" ]
+    //                                     [ span [ ]
+    //                                         [ str key ]
+    //                                       Icon.icon [ ]
+    //                                         [ Fa.i [ Fa.Solid.AngleRight
+    //                                                  Fa.Size Fa.FaLarge ]
+    //                                             [ ] ] ]
+    //                                   subMenu ]
 
-                            )
-                            |> Array.toList
-                            |> Menu.list [ ]
-                    )
+    //                         )
+    //                         |> Array.toList
+    //                         |> Menu.list [ ]
+    //                 )
 
-                fragment [ ]
-                    [ Menu.label [ ]
-                        [ str key ]
-                      Menu.list [ ]
-                        items ]
-            )
-            |> Menu.menu [ Props [ Style [ MarginTop "3.25rem" ] ] ]
-            |> Some
-        | None ->
-            JS.console.log "no menu"
-            None
+    //             fragment [ ]
+    //                 [ Menu.label [ ]
+    //                     [ str key ]
+    //                   Menu.list [ ]
+    //                     items ]
+    //         )
+    //         |> Menu.menu [ Props [ Style [ MarginTop "3.25rem" ] ] ]
+    //         |> Some
+    //     | None ->
+    //         JS.console.log "no menu"
+    //         None
 
-    let addJavaScriptConfig (model : Model) (pageContext : PageContext) (pageContent : React.ReactElement) =
+    let addJavaScriptConfig (model : Model) (pageContext : PageContext) (pageContent : ReactElement) =
         fragment [ ]
             [ pageContent
               script [ Type "text/javascript"
@@ -124,8 +124,9 @@ module DocPage =
 
     let toHtml (model : Model) (pageContext : PageContext) =
         renderPage
-            (generateMenu model pageContext)
+            // (generateMenu model pageContext)
+            None
             pageContext.TableOfContent
             pageContext.Content
-        |> addJavaScriptConfig model pageContext
+        // |> addJavaScriptConfig model pageContext
         |> Prelude.basePage model pageContext.Attributes.Title

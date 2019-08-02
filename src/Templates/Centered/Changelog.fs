@@ -6,8 +6,8 @@ module Changelog =
     open Types
     open System
     open System.Text.RegularExpressions
-    open Fable.Helpers.React
-    open Fable.Helpers.React.Props
+    open Fable.React
+    open Fable.React.Props
 
     let renderVersion (versionText : string) (date : DateTime option) =
         let dateText =
@@ -25,7 +25,7 @@ module Changelog =
                   span [ Id slug
                          Style [ Visibility "hidden"
                                  MarginTop "-1rem"
-                                 Position "absolute" ] ]
+                                 Position PositionOptions.Absolute ] ]
                     [ str "#" ]
                   Tag.tag [ Tag.Color IsPrimary
                             Tag.Size IsLarge

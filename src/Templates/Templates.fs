@@ -2,11 +2,11 @@ module Templates
 
 open Fable.Core.JsInterop
 open Types
-open Fable.Import
+open Fable.React
 
 type ITemplates =
-    abstract DocPage : Model * PageContext -> React.ReactElement
-    abstract Changelog : Model * Changelog.Types.Changelog -> React.ReactElement
+    abstract DocPage : Model * PageContext -> ReactElement
+    abstract Changelog : Model * Changelog.Types.Changelog -> ReactElement
 
 type IExport =
     abstract Centered : ITemplates

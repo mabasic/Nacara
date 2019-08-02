@@ -28,10 +28,8 @@ let sassFile (model : Model, filePath : string) =
 let standard (model : Model, pageContext : PageContext) =
     promise {
         let fileContent =
-            // Render.DocPage.toHtml model pageContext
-            // |> Helpers.parseReactStatic
-
-            ""
+            Templates.Centered.DocPage.toHtml model pageContext
+            |> Helpers.parseReactStatic
 
         let outputPath =
             pageContext.Path
